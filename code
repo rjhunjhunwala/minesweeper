@@ -1,0 +1,296 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package battleship;
+
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.Scanner;
+
+/**
+ *
+ * @author jhunsm00
+ */
+public class minesweeper {
+
+static int sizeOfMap;
+ static int[][][] myGuesses;
+ static int score=0;
+	/**
+	 *cost to defuse a mine
+	 */
+	public static int costOfDefuse;
+/**
+	 * Returns a letter (or word the user types)
+	 *
+	 * @param Prompt for the user
+	 * @return a string
+	 */
+ public static String getStringFromUser(String Prompt) {
+		System.out.println(Prompt);
+		Scanner sc = new Scanner(System.in);
+		return (sc.nextLine());
+	}
+
+ /**
+	 * look for mines
+	 *
+	 * @param board
+	 * @param sizeOfMap
+	 * @param x
+	 * @param y
+	 * @param z
+	 * @return how many neighboring mines
+	 */
+	public static int lookForMines(int[][][] board, int sizeOfMap, int x, int y, int z) {
+		int a = 0;
+		for(int i=-1;i<2;i++){
+			for(int j=-1;j<2;j++){
+				for(int k=-1;k<2;k++){
+					try {
+						if (board[x+i][y+j][z+k] == -1) {
+							a++;
+						}
+					} catch (Exception e) {
+					}
+				}
+			}
+		}
+		return a;
+	}
+
+ /**
+	 *
+	 * @param board
+	 * @param sizeOfMap
+	 * @return the board with the number of adjacent mines to the square in each 
+		* square
+	 */
+	public static int[][][] parseBoard(int[][][] board, int sizeOfMap) {
+		int[][][] parsedBoard = new int[sizeOfMap][sizeOfMap][sizeOfMap];
+		for (int i = 0; i < sizeOfMap;i++ ) {
+			for (int j = 0; j < sizeOfMap; j++) {
+				for (int k = 0; k < sizeOfMap; k++) {
+					if (board[i][j][k] == -1) {
+						parsedBoard[i][j][k] = -1;
+					} else {
+						parsedBoard[i][j][k] = lookForMines(board, sizeOfMap, i, j, k);
+					}
+				}
+   }
+  }
+
+  return parsedBoard;
+ }
+/**
+	 *
+	 * @param max is the maximum integer
+	 * @return a random from 0 inclusive to max exclusive
+	 */
+	public static int getRandom(int max) {
+		SecureRandom r = new SecureRandom();
+  return r.nextInt(max);
+ }
+
+ /**
+	 * Gets an integer from user
+	 *
+	 * @param prompt
+	 * @return an integer
+	 */
+	public static int getIntFromUser(String prompt) {
+	try{
+		System.out.println(prompt);
+		Scanner sc = new Scanner(System.in);
+  return (sc.nextInt());
+	}
+	catch(Exception e){
+		if(prompt.contains(" (invalid int)")){
+			return getIntFromUser(prompt);
+		}
+		else
+		{
+		return getIntFromUser(prompt +" (invalid int)");}
+	}
+	}
+
+/**
+	 * @param args the command line arguments
+		* the body of the minesweeper game
+	 */
+	public static void main(String[] args) {
+		sizeOfMap=getIntFromUser("Map size");
+		myGuesses=new int[sizeOfMap][sizeOfMap][sizeOfMap];
+		int[][][] board = new int[sizeOfMap][sizeOfMap][sizeOfMap];
+		for (int i = 0; i < sizeOfMap; i++) {
+			for (int j = 0; j < sizeOfMap; j++) {
+				for (int k = 0; k < sizeOfMap; k++) {
+					board[i][j][k] = 0;
+					//blank board
+				}
+			}
+		}
+		for (int i = 0; i < sizeOfMap;i++ ) {
+			for (int j = 0; j < sizeOfMap; j++) {
+				for (int k = 0; k < sizeOfMap; k++) {
+					myGuesses[i][j][k] = -3;
+					//no guesses yet
+				}
+			}
+		}
+		int minefieldDensity = getIntFromUser("Average mines per 100 squares?");
+		for (int x = 0; x < sizeOfMap; x++) {
+			for (int y = 0; y < sizeOfMap; y++) {
+				for (int z = 0; z < sizeOfMap; z++) {
+					if (getRandom(100) < minefieldDensity) {
+						board[x][y][z] = -1;
+						//place a mine
+					}
+				}
+			}
+		}
+		costOfDefuse=	150*((100-minefieldDensity)/minefieldDensity);
+		int[][][] parsedBoard = parseBoard(board, sizeOfMap);
+		int[] coord = new int[3];
+		boolean bool = true;
+		while (gameGoes(bool)) {
+			System.out.println("You have "+score+" dollars");
+			System.out.println("Defuse costs "+
+costOfDefuse+" dollars");
+			dispBoardNicely(myGuesses, sizeOfMap);
+			coord[0] = getIntFromUser("Level for guess")-1;
+			coord[1] = getIntFromUser("row")-1;
+			coord[2] = getIntFromUser("column")-1;
+			String yesOrNo = getStringFromUser("flag");
+			bool = updateGuessBoard(coord, myGuesses, parsedBoard,
+											yesOrNo.toLowerCase().contains("y")||yesOrNo.toLowerCase().contains("es"),
+minefieldDensity);
+  }
+	}
+
+	private static void dispBoardNicely(int[][][] myGuesses, int size) {
+		for (int i = 0; i < size;i++ ) {
+			System.out.println("Level " + (i+1));
+			for (int j = 0; j < size; j++) {
+				for (int k = 0; k < size; k++) {
+					if (myGuesses[i][j][k] == -3) {
+						System.out.print("O");
+					}
+					if (myGuesses[i][j][k] == -2) {
+						System.out.print("F");
+					}
+					if (myGuesses[i][j][k] == -4) {
+						System.out.print("D");
+					}
+					if (myGuesses[i][j][k] >= -1) {
+						System.out.print(myGuesses[i][j][k]);
+     }
+    }
+    System.out.println();
+			}
+		}
+	}
+	
+	private static boolean gameGoes(boolean b) {
+		if(!b){
+			return false;
+		}
+		if(score<0){
+			System.out.println("You ran out of money therefore you lose");
+			return false;
+		}
+		for (int x = 0; x < sizeOfMap; x++) {
+			for (int y = 0; y < sizeOfMap; y++) {
+				for (int z = 0; z < sizeOfMap; z++) {
+					if (myGuesses[x][y][z] ==-3) {
+						return true;
+					}
+				}
+			}
+			
+		}
+		System.out.println("You win with a score of "+score);
+    return false;
+	}
+
+/**
+	 *
+	 * @param coord parameters are self explanatory
+	 * @param myGuesses
+	 * @param board
+	 * @param flag
+	 * @param minefieldDensity
+	 * 
+	 * @return a true false boolean of whether guess was good
+	 */
+	private static boolean updateGuessBoard(int[] coord, int[][][] 
+									myGuesses, int[][][] board, boolean flag, int minefieldDensity) {
+		try{
+			if(myGuesses[coord[0]][coord[1]][coord[2]]!=-3){
+				System.out.println("guess again you have already tried this square");
+				return true;
+			}
+			if(flag){
+				score-=costOfDefuse;
+				System.out.println(costOfDefuse+" points"
+												+ " deducted");
+				if(board[coord[0]][coord[1]][coord[2]]==-1){
+					System.out.println("bomb defused");
+					System.out.println(((int) (.8*costOfDefuse))+
+													" Refunded Good Job (only .8x refund)");
+					score+=.8*costOfDefuse;
+					myGuesses[coord[0]][coord[1]][coord[2]]=-4;
+				}
+				else
+				{
+					System.out.println("useless flag placed");
+					myGuesses[coord[0]][coord[1]][coord[2]]=board[coord[0]][coord[1]][coord[2]];
+				}
+				return true;
+			}
+			if (board[coord[0]][coord[1]][coord[2]] == -1) {
+				System.out.println("Boom!\nGame Over");
+				return false;
+			} else {
+				myGuesses[coord[0]][coord[1]][coord[2]]=board[coord[0]][coord[1]][coord[2]];
+				if(myGuesses[coord[0]][coord[1]][coord[2]]==0){
+					lookForZeros(board,coord);
+				}
+				score+=100;
+  }
+			return true;
+		}catch(Exception e){return true;}
+	}
+	/**
+		* 
+		* @param board the board 
+		* @param coord the coordinate which someone has guessed
+		* recursively reveals squares with no mines surrounding them 
+		*/
+	private static void lookForZeros(int[][][] board, int[] coord) {
+		int x=coord[0]-1;
+		int y=coord[1]-1;
+		int z=coord[2]-1;
+		for(int i=0;i<3;i++){
+			for(int j=0;j<3;j++){
+				for(int k=0;k<3;k++){
+					try {
+						if(board[x+i][y+j][z+k]!=0){
+							myGuesses[x +i][y+j][z+k]=board[x+i][y+j][z+k];
+							score+=45;
+						}
+						if (board[x+i][y+j][z+k] == 0&&(myGuesses[x+i][y+j][z+k]!=0)){
+							myGuesses[x +i][y+j][z+k]=board[x+i][y+j][z+k];
+							score+=25;
+							coord[0]=x+i;
+    coord[1]=y+j;
+    coord[2]=z+k;
+    lookForZeros(board,coord);
+    }
+}catch(Exception e){} 
+} 
+}
+}}
+}
